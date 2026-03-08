@@ -1,0 +1,37 @@
+services:
+  # Backend — Node.js Web Service
+  - type: web
+    name: task-manager-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /data/tasks.db
+      - key: CLIENT_URL
+        fromService:
+          name: task-manager-frontend
+          type: web
+          property: host
+    disk:
+      name: sqlite-data
+      mountPath: /data
+      sizeGB: 1
+
+  # Frontend — Static Site
+  - type: web
+    name: task-manager-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: task-manager-backend
+          type: web
+          property: host
+          transform: "https://{value}/api"
